@@ -2,7 +2,7 @@
 """
 rail_3d_from_video.py
 
-Pretvara .mp4 video vožnje vlaka u 3D prostor na dva načina:
+Pretvara .mp4 video u 3D prostor na dva načina:
   1) "colmap"  – Structure-from-Motion + Multi-View Stereo (PRECIZNIJE, zahtijeva COLMAP i ffmpeg)
   2) "midas"   – Monokularna dubina (BRŽE, bez vanjskih alata; točnost ovisi o sceni)
 
@@ -10,14 +10,11 @@ Ulaz: put do .mp4 videa
 Izlaz: 3D oblak točaka i (opcionalno) mesh, spremljeni u output direktorij.
 
 Primjeri pokretanja:
-  python rail_3d_from_video.py input.mp4 --method colmap --fps 2 --out out_colmap
-  python rail_3d_from_video.py input.mp4 --method midas  --fps 2 --out out_midas
+    python rail_3d_from_video.py input.mp4 --method colmap --fps 2 --out out_colmap
+    python rail_3d_from_video.py input.mp4 --method midas  --fps 2 --out out_midas
 
 Preduvjeti:
-- Zajedničko: Python 3.9+, opencv-python, numpy, open3d
-- Za "colmap": instalirani `ffmpeg` i `colmap` dostupni u PATH-u
-- Za "midas": torch, torchvision, timm (model će se preuzeti automatski pri prvom pokretanju)
-
+    Nalaze se unutar requirements.txt
 """
 
 import argparse
@@ -30,7 +27,6 @@ from pathlib import Path
 import numpy as np
 import cv2
 
-# Open3D je opcionalan za vizualizaciju i generiranje mesh-a
 try:
     import open3d as o3d
 except Exception:
