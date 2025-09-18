@@ -10,8 +10,8 @@ Ulaz: put do .mp4 videa
 Izlaz: 3D oblak točaka i (opcionalno) mesh, spremljeni u output direktorij.
 
 Primjeri pokretanja:
-    python rail_3d_from_video.py input.mp4 --method colmap --fps 2 --out out_colmap
-    python rail_3d_from_video.py input.mp4 --method midas  --fps 2 --out out_midas
+    python main.py input.mp4 --method colmap --fps 2 --out out_colmap
+    python main.py input.mp4 --method midas  --fps 2 --out out_midas
 
 Preduvjeti:
     Nalaze se unutar requirements.txt
