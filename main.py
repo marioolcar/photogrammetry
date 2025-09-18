@@ -171,10 +171,22 @@ def colmap_pipeline(frames_dir: Path, work_dir: Path, camera_model: str = "SIMPL
 
 def load_midas(model_type: str = "DPT_Large"):
     import torch
+    import torchvision.transforms as T
+
+    # učitaj MiDaS model
     midas = torch.hub.load("intel-isl/MiDaS", model_type)
     midas.eval()
-    transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
-    transform = transforms.dpt_transform if "DPT" in model_type else transforms.small_transform
+
+    # ručno definiramo transform (resize + to tensor + normalizacija)
+    transform = T.Compose([
+        T.Resize(384 if "small" in model_type.lower() else 512),
+        T.ToTensor(),
+        T.Normalize(
+            mean=[0.5, 0.5, 0.5],
+            std=[0.5, 0.5, 0.5]
+        ),
+    ])
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     midas.to(device)
     return midas, transform, device
@@ -183,17 +195,29 @@ def load_midas(model_type: str = "DPT_Large"):
 def depth_from_image(img_bgr, midas, transform, device):
     import torch
     from PIL import Image
+    import cv2
+    import numpy as np
+
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    inp = transform(Image.fromarray(img_rgb)).unsqueeze(0).to(device)
+    img_pil = Image.fromarray(img_rgb)
+
+    inp = transform(img_pil).unsqueeze(0).to(device)
+
     with torch.no_grad():
         pred = midas(inp)
         pred = torch.nn.functional.interpolate(
-            pred.unsqueeze(1), size=img_rgb.shape[:2], mode="bicubic", align_corners=False
+            pred.unsqueeze(1),
+            size=img_rgb.shape[:2],
+            mode="bicubic",
+            align_corners=False
         ).squeeze()
+
     depth = pred.cpu().numpy()
-    # normalizacija u [0,1]
     depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)
+
     return depth
+
+
 
 
 def rgbd_to_point_cloud(rgb, depth_norm, fx=None, fy=None):
@@ -256,7 +280,7 @@ def midas_pipeline(video_path: Path, out_dir: Path, fps: float = 2.0, max_frames
         if accum_pcd is None:
             accum_pcd = pcd
         else:
-            # grubo poravnanje ICP-om
+            accum_pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
             reg = o3d.pipelines.registration.registration_icp(
                 pcd, accum_pcd, 0.2,
                 np.eye(4),
@@ -265,9 +289,6 @@ def midas_pipeline(video_path: Path, out_dir: Path, fps: float = 2.0, max_frames
             pcd.transform(reg.transformation)
             accum_pcd += pcd
             accum_pcd = accum_pcd.voxel_down_sample(voxel_size=0.05)
-        frame_count += 1
-        if frame_count >= max_frames:
-            break
 
     cap.release()
 
