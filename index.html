@@ -3,7 +3,24 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
+		<title>Model Viewer Fullscreen</title>
+		<style>
+			body,
+			html {
+				margin: 0;
+				padding: 0;
+				height: 100%;
+				width: 100%;
+				overflow: hidden;
+				background: #000; /* crna pozadina, možeš promijeniti */
+			}
+
+			model-viewer {
+				width: 100vw;
+				height: 100vh;
+				display: block;
+			}
+		</style>
 	</head>
 	<body>
 		<!-- Import the component -->
@@ -12,13 +29,18 @@
 			src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
 		></script>
 
-		<!-- Use it like any other HTML element -->
+		<!-- Fullscreen model -->
 		<model-viewer
 			alt="kermit"
 			src="grab.glb"
 			shadow-intensity="1"
 			camera-controls
-			touch-action="pan-y"
-		></model-viewer>
+			auto-rotate
+			orientation="0deg 180deg 0deg"
+			style="background-color: black"
+			exposure="1"
+			skybox-image="text.jpg"
+		>
+		</model-viewer>
 	</body>
 </html>
